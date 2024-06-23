@@ -16,12 +16,14 @@ return Def.ActorFrame {
 		SetCommand=function(self,params)
 			self:stoptweening();
 			local group = params.Text;
-			if GAMESTATE:GetSortOrder() == 'SortOrder_Group' then
-				self:settext(string.gsub(SongAttributes.GetGroupName(group),"^%d%d? ?%- ?", ""));
-			elseif GAMESTATE:GetSortOrder() == 'SortOrder_TopGrades' then
-				self:settext(string.gsub(group,"AAAA","AAA+"))
-			else
-				self:settext(SongAttributes.GetGroupName(group));
+			if params.Type == "SectionExpanded" then 
+				if GAMESTATE:GetSortOrder() == 'SortOrder_Group' then
+					self:settext(string.gsub(SongAttributes.GetGroupName(group),"^%d%d? ?%- ?", ""));
+				elseif GAMESTATE:GetSortOrder() == 'SortOrder_TopGrades' then
+					self:settext(string.gsub(group,"AAAA","AAA+"))
+				else
+					self:settext(SongAttributes.GetGroupName(group));
+				end
 			end
 		end;
 	  };

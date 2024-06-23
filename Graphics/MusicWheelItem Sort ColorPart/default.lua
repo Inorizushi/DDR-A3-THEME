@@ -47,7 +47,9 @@ return Def.ActorFrame{
 		InitCommand=function(s) s:zoom(1.5):maxwidth(240):diffuse(Color("White")):uppercase(true) end,
 		SetCommand=function(self,params)
 			self:stoptweening();
-			self:settextf("%s",params.Label);
+			if params.Type == "Sort" then
+				self:settextf("%s",params.Label);
+			end
 			if params.HasFocus then
 				self:diffuse(Color("Black"))
 			else

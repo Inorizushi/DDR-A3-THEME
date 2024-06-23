@@ -1,7 +1,7 @@
 local t = Def.ActorFrame {};
 -- speedkills
 -- proof of concept for in-gameplay speed change
--- [ja] ƒv?ƒC?‚ÉƒnƒCƒXƒs‚ð•ÏX‚·‚éŠT”OŽÀØƒR[ƒh
+-- [ja] ï¿½v?ï¿½C?ï¿½Éƒnï¿½Cï¿½Xï¿½sï¿½ï¿½ÏXï¿½ï¿½ï¿½ï¿½Tï¿½Oï¿½ï¿½ï¿½ØƒRï¿½[ï¿½h
 local speedkills_Initialized = false;
 local speedMode = {
 	PlayerNumber_P1 = 'x',
@@ -18,7 +18,7 @@ local targetBPM = {
 t[#t+1] = Def.ActorFrame {
 	OnCommand = function(self)
 		-- Get max BPM for M-Mod HACK
-		-- [ja] Œãq‚ÌHACK‚Ì‚½‚ß‚ÉÅ‘åBPM‚ðŽæ“¾
+		-- [ja] ï¿½ï¿½qï¿½ï¿½HACKï¿½Ì‚ï¿½ï¿½ß‚ÉÅ‘ï¿½BPMï¿½ï¿½ï¿½æ“¾
 		local pns = {
 			'PlayerNumber_P1',
 			'PlayerNumber_P2',
@@ -79,14 +79,14 @@ t[#t+1] = Def.ActorFrame {
 				end;
 
 				-- Get speed mode (x/m/C) and target BPM
-				-- [ja] ƒnƒCƒXƒs‚Ì?[ƒh (x/m/C) ‚Æ–Ú•WBPM‚ðŽæ“¾
+				-- [ja] ï¿½nï¿½Cï¿½Xï¿½sï¿½ï¿½?ï¿½[ï¿½h (x/m/C) ï¿½Æ–Ú•WBPMï¿½ï¿½ï¿½æ“¾
 				local ps = GAMESTATE:GetPlayerState(v);
 				local po = ps:GetPlayerOptions("ModsLevel_Preferred");
 
 				local XMod = po:XMod() or 0;
 				local MMod = po:MMod() or 0;
 
-				-- [ja] ƒR[ƒh‚ðŒ©‚éŒÀ‚èGetCMod()‚Í³‚µ‚­“®ì‚µ‚È‚¢H
+				-- [ja] ï¿½Rï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½GetCMod()ï¿½Íï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì‚µï¿½È‚ï¿½ï¿½H
 				-- local CMod = po:GetCMod();
 				local modstring = ps:GetPlayerOptionsString("ModsLevel_Preferred");
 				local CModString = string.match(modstring, "[Cc](%d+)") or "0";
@@ -106,7 +106,7 @@ t[#t+1] = Def.ActorFrame {
 				end;
 
 				-- debug message
-				-- [ja] ƒfƒoƒbƒO—p
+				-- [ja] ï¿½fï¿½oï¿½bï¿½Oï¿½p
 				SCREENMAN:SystemMessage(string.format("%s: Speed: %s%.0f Max BPM: %.0f", v, speedMode[v], targetBPM[v], maxBPM[v]));
 			end;
 		end;
@@ -123,93 +123,96 @@ t[#t+1] = Def.ActorFrame {
 			return;
 		end;
 
-		if speedMode[pn] == 'x' then
-			-- X-Mod
-			local speed = po:XMod() or 0;
-			speed = math.floor(speed * 4 + 0.5) / 4;
+		--Check if Menu Buttons are enabled so prevent speed changing if user hasn't enabled the setting.
+		if PREFSMAN:GetPreference("OnlyDedicatedMenuButtons") then
+			if speedMode[pn] == 'x' then
+				-- X-Mod
+				local speed = po:XMod() or 0;
+				speed = math.floor(speed * 4 + 0.5) / 4;
 
-			local speedDelta = 0;
-			if params.Name == "SpeedUp" then
-				speedDelta = 0.25;
-			elseif params.Name == "SpeedDown" then
-				speedDelta = -0.25;
-			end;
-
-			speed = math.max(0.25, math.min(speed + speedDelta, 8));
-			targetBPM[pn] = speed * maxBPM[pn];
-
-			local modstring = ps:GetPlayerOptionsString("ModsLevel_Preferred");
-
-			-- HACK: Add "default, " to prevent crash
-			-- [ja] ƒN?ƒbƒV?‚ð–h‚®‚½‚ß‚Éudefault, v‚ð•t‚¯‰Á‚¦‚é
-			modstring = "default, " .. modstring;
-			modstring = modstring .. ", " .. speed .. "x";
-
-			ps:SetPlayerOptions("ModsLevel_Preferred", modstring);
-
-			-- 1.00x
-			local xString = string.format("%.2fx", speed);
-			-- 1.00x -> 1.0x
-			xString = string.gsub(xString, "(%d+%.%d)0x", "%1x");
-			-- 1.0x -> 1x
-			xString = string.gsub(xString, "(%d+)%.0x", "%1x");
-			
-			if params.Name == "SpeedUp" or params.Name == "SpeedDown" then
-				SCREENMAN:SystemMessage(string.format("%s: %s (m%.0f)", pn, xString, targetBPM[pn]));
-			end;
-		else
-			-- C-Mod and M-Mod
-			local speed = targetBPM[pn];
-			speed = math.floor(speed / 50 + 0.5) * 50;
-
-			local speedDelta = 0;
-			if params.Name == "SpeedUp" then
-				speedDelta = 50;
-			elseif params.Name == "SpeedDown" then
-				speedDelta = -50;
-			end;
-
-			speed = math.max(100, math.min(speed + speedDelta, 2000));
-			targetBPM[pn] = speed;
-
-			local modstring = ps:GetPlayerOptionsString("ModsLevel_Preferred");
-
-			-- HACK: Add "default, " to prevent crash
-			-- [ja] ƒN?ƒbƒV?‚ð–h‚®‚½‚ß‚Éudefault, v‚ð•t‚¯‰Á‚¦‚é
-			modstring = "default, " .. modstring;
-
-			if speedMode[pn] == 'm' then
-				-- [ja] BPM‚ª0‚¾‚Æ‚Ç‚¤‘«‘~‚¢‚Ä‚à‘¬“x‚ª–³ŒÀ‚É‚È‚é‚Ì‚Å?’f
-				if maxBPM[pn] == 0 then
-					SCREENMAN:SystemMessage("m-Mod with 0 BPM, speed cannot be changed...");
-					return;
+				local speedDelta = 0;
+				if params.Name == "SpeedUp" then
+					speedDelta = 0.25;
+				elseif params.Name == "SpeedDown" then
+					speedDelta = -0.25;
 				end;
 
-				-- HACK: Add X-Mod, because M-Mod cannot be applied in gameplay
-				-- [ja] M-Mod‚Íƒv?ƒC?‚É‚Í‚»‚Ì‚Ü‚Ü“K—p‚³‚ê‚È‚¢‚Ì‚ÅX-Mod‚à•t‚¯‰Á‚¦‚é
-				modstring = modstring .. ", " .. (targetBPM[pn] / maxBPM[pn]) .. 'x';
+				speed = math.max(0.25, math.min(speed + speedDelta, 8));
+				targetBPM[pn] = speed * maxBPM[pn];
+
+				local modstring = ps:GetPlayerOptionsString("ModsLevel_Preferred");
+
+				-- HACK: Add "default, " to prevent crash
+				-- [ja] ï¿½N?ï¿½bï¿½V?ï¿½ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ß‚Éudefault, ï¿½vï¿½ï¿½tï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				modstring = "default, " .. modstring;
+				modstring = modstring .. ", " .. speed .. "x";
+
+				ps:SetPlayerOptions("ModsLevel_Preferred", modstring);
+
+				-- 1.00x
+				local xString = string.format("%.2fx", speed);
+				-- 1.00x -> 1.0x
+				xString = string.gsub(xString, "(%d+%.%d)0x", "%1x");
+				-- 1.0x -> 1x
+				xString = string.gsub(xString, "(%d+)%.0x", "%1x");
+				
+				if params.Name == "SpeedUp" or params.Name == "SpeedDown" then
+					SCREENMAN:SystemMessage(string.format("%s: %s (m%.0f)", pn, xString, targetBPM[pn]));
+				end;
+			else
+				-- C-Mod and M-Mod
+				local speed = targetBPM[pn];
+				speed = math.floor(speed / 50 + 0.5) * 50;
+
+				local speedDelta = 0;
+				if params.Name == "SpeedUp" then
+					speedDelta = 50;
+				elseif params.Name == "SpeedDown" then
+					speedDelta = -50;
+				end;
+
+				speed = math.max(100, math.min(speed + speedDelta, 2000));
+				targetBPM[pn] = speed;
+
+				local modstring = ps:GetPlayerOptionsString("ModsLevel_Preferred");
+
+				-- HACK: Add "default, " to prevent crash
+				-- [ja] ï¿½N?ï¿½bï¿½V?ï¿½ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ß‚Éudefault, ï¿½vï¿½ï¿½tï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				modstring = "default, " .. modstring;
+
+				if speedMode[pn] == 'm' then
+					-- [ja] BPMï¿½ï¿½0ï¿½ï¿½ï¿½Æ‚Ç‚ï¿½ï¿½ï¿½ï¿½~ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É‚È‚ï¿½Ì‚ï¿½?ï¿½f
+					if maxBPM[pn] == 0 then
+						SCREENMAN:SystemMessage("m-Mod with 0 BPM, speed cannot be changed...");
+						return;
+					end;
+
+					-- HACK: Add X-Mod, because M-Mod cannot be applied in gameplay
+					-- [ja] M-Modï¿½Íƒv?ï¿½C?ï¿½É‚Í‚ï¿½ï¿½Ì‚Ü‚Ü“Kï¿½pï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½Ì‚ï¿½X-Modï¿½ï¿½ï¿½tï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					modstring = modstring .. ", " .. (targetBPM[pn] / maxBPM[pn]) .. 'x';
+				end;
+
+				modstring = modstring .. ", " .. speedMode[pn] .. targetBPM[pn];
+
+				ps:SetPlayerOptions("ModsLevel_Preferred", modstring);
+
+				-- 1.00x
+				local xString = string.format("%.2fx", targetBPM[pn] / maxBPM[pn]);
+				-- 1.00x -> 1.0x
+				xString = string.gsub(xString, "(%d+%.%d)0x", "%1x");
+				-- 1.0x -> 1x
+				xString = string.gsub(xString, "(%d+)%.0x", "%1x");
+
+				local format = "%s: %s%.0f";
+				if speedMode[pn] == 'm' then
+					format = "%s: %s%.0f (%s)";
+				end;
+
+				if params.Name == "SpeedUp" or params.Name == "SpeedDown" then
+					SCREENMAN:SystemMessage(string.format(format, pn, speedMode[pn], targetBPM[pn], xString));
+				end;
 			end;
-
-			modstring = modstring .. ", " .. speedMode[pn] .. targetBPM[pn];
-
-			ps:SetPlayerOptions("ModsLevel_Preferred", modstring);
-
-			-- 1.00x
-			local xString = string.format("%.2fx", targetBPM[pn] / maxBPM[pn]);
-			-- 1.00x -> 1.0x
-			xString = string.gsub(xString, "(%d+%.%d)0x", "%1x");
-			-- 1.0x -> 1x
-			xString = string.gsub(xString, "(%d+)%.0x", "%1x");
-
-			local format = "%s: %s%.0f";
-			if speedMode[pn] == 'm' then
-				format = "%s: %s%.0f (%s)";
-			end;
-
-			if params.Name == "SpeedUp" or params.Name == "SpeedDown" then
-				SCREENMAN:SystemMessage(string.format(format, pn, speedMode[pn], targetBPM[pn], xString));
-			end;
-		end;
+		end
 		retrieveMeterType(); --In BGAnimations/ScreenGameplay decorations/OptionsHack.lua
 		SetGameplayMeterType(pn); --In BGAnimations/ScreenGameplay decorations/OptionsHack.lua
 	end;
