@@ -4,11 +4,15 @@ local diff = Def.ActorFrame{};
 local top
 
 local function GetExpandedSectionIndex()
-	local mWheel = SCREENMAN:GetTopScreen():GetMusicWheel()
-	local curSections = mWheel:GetCurrentSections()
-	for i=1, #curSections do
-		if curSections[i] == GAMESTATE:GetExpandedSectionName() then
-			return i-1
+	local mWheel
+	if SCREENMAN:GetTopScreen():GetChild("MusicWheel")  ~= nil then
+		mWheel = SCREENMAN:GetTopScreen():GetChild("MusicWheel")
+		local curSections = mWheel:GetCurrentSections()
+	
+		for i=1, #curSections do
+			if curSections[i] == GAMESTATE:GetExpandedSectionName() then
+				return i-1
+			end
 		end
 	end
 end
